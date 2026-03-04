@@ -69,6 +69,9 @@ func NewRouter(pool *pgxpool.Pool) http.Handler {
 			r.Get("/admin/reviews/{id}", reviewsHandler.Get)
 			r.Patch("/admin/reviews/{id}/status", reviewsHandler.UpdateStatus)
 
+			bulkHandler := admin.NewBulkHandler(pool)
+			r.Patch("/admin/reviews/bulk-status", bulkHandler.UpdateStatus)
+
 			tenantsHandler := admin.NewTenantsHandler(pool)
 			r.Get("/admin/tenants", tenantsHandler.List)
 			r.Post("/admin/tenants", tenantsHandler.Create)
