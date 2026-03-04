@@ -1,0 +1,15 @@
+# syntax=docker/dockerfile:1
+
+FROM golang:1.24-alpine
+
+WORKDIR /app
+
+# Install Air for hot-reload
+RUN go install github.com/air-verse/air@latest
+
+# Dependencies cached separately from source
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Source is mounted at runtime via docker compose volume
+ENTRYPOINT ["air", "-c", ".air.toml"]
