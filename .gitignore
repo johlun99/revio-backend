@@ -1,0 +1,17 @@
+# Environment
+.env
+.env.local
+
+# Air hot-reload
+tmp/
+
+# Build output
+bin/
+
+# sqlc generated output
+internal/repository/query/
+
+# IDE
+.idea/
+.vscode/
+*.swp
