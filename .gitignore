@@ -9,9 +9,6 @@ tmp/
 bin/
 /api
 
-# sqlc generated output
-internal/repository/query/
-
 # Claude context (machine-local)
 CLAUDE.md
 
