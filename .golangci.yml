@@ -1,0 +1,26 @@
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - errcheck       # unchecked errors
+    - govet          # suspicious constructs
+    - staticcheck    # broad static analysis
+    - unused         # unused code
+    - gofmt          # formatting
+    - goimports      # import ordering
+    - gocritic       # opinionated but useful checks
+    - nilerr         # return nil with non-nil error
+    - exhaustive     # exhaustive enum switches
+
+linters-settings:
+  gofmt:
+    simplify: true
+  goimports:
+    local-prefixes: github.com/johlun99/revio
+
+issues:
+  max-same-issues: 5
+  exclude-rules:
+    - path: _test\.go
+      linters: [errcheck]
