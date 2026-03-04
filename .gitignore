@@ -11,6 +11,9 @@ bin/
 # sqlc generated output
 internal/repository/query/
 
+# Claude context (machine-local)
+CLAUDE.md
+
 # IDE
 .idea/
 .vscode/
