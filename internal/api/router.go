@@ -40,10 +40,13 @@ func NewRouter(pool *pgxpool.Pool) http.Handler {
 	authHandler := admin.NewAuthHandler(pool, cfg.JWTSecret)
 
 	r.Route("/api/v1", func(r chi.Router) {
-		// Public widget API (API key auth)
+		// Public widget API (API key auth + rate limiting)
 		publicReviews := public.NewReviewsHandler(pool)
 		r.Group(func(r chi.Router) {
 			r.Use(authmw.RequireAPIKey(pool))
+			r.Use(authmw.RateLimit(10, 20, func(r *http.Request) string {
+				return r.Header.Get("X-API-Key")
+			}))
 			r.Get("/reviews", publicReviews.List)
 			r.Post("/reviews", publicReviews.Submit)
 		})
