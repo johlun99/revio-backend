@@ -10,6 +10,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/johlun99/revio/internal/api/handler"
+	"github.com/johlun99/revio/internal/api/handler/admin"
+	authmw "github.com/johlun99/revio/internal/api/middleware"
 	"github.com/johlun99/revio/internal/config"
 )
 
@@ -34,18 +36,23 @@ func NewRouter(pool *pgxpool.Pool) http.Handler {
 	healthHandler := handler.NewHealthHandler(pool)
 	r.Get("/health", healthHandler.Handle)
 
+	authHandler := admin.NewAuthHandler(pool, cfg.JWTSecret)
+
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Route("/admin", func(r chi.Router) {
-			// TODO: r.Use(jwtMiddleware)
-			r.Mount("/reviews", adminReviewsRouter())
+		// Public auth routes
+		r.Post("/admin/auth/login", authHandler.Login)
+		r.Post("/admin/auth/logout", authHandler.Logout)
+
+		// Protected admin routes
+		r.Group(func(r chi.Router) {
+			r.Use(authmw.RequireAuth(cfg.JWTSecret))
+
+			r.Get("/admin/auth/me", authHandler.Me)
+
+			// Phase 2: review management
+			// r.Mount("/admin/reviews", adminReviewsRouter())
 		})
 	})
 
-	return r
-}
-
-func adminReviewsRouter() http.Handler {
-	r := chi.NewRouter()
-	// Stub — Phase 2 will add: GET /, GET /{id}, PATCH /{id}/status
 	return r
 }
