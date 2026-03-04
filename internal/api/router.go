@@ -49,8 +49,10 @@ func NewRouter(pool *pgxpool.Pool) http.Handler {
 
 			r.Get("/admin/auth/me", authHandler.Me)
 
-			// Phase 2: review management
-			// r.Mount("/admin/reviews", adminReviewsRouter())
+			reviewsHandler := admin.NewReviewsHandler(pool)
+			r.Get("/admin/reviews", reviewsHandler.List)
+			r.Get("/admin/reviews/{id}", reviewsHandler.Get)
+			r.Patch("/admin/reviews/{id}/status", reviewsHandler.UpdateStatus)
 		})
 	})
 
