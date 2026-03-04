@@ -1,6 +1,8 @@
 -- +goose Up
 -- +goose StatementBegin
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 CREATE TYPE review_status AS ENUM ('pending', 'approved', 'rejected', 'flagged');
 CREATE TYPE admin_role AS ENUM ('superadmin', 'admin', 'moderator');
 
