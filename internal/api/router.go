@@ -11,6 +11,7 @@ import (
 
 	"github.com/johlun99/revio/internal/api/handler"
 	"github.com/johlun99/revio/internal/api/handler/admin"
+	"github.com/johlun99/revio/internal/api/handler/public"
 	authmw "github.com/johlun99/revio/internal/api/middleware"
 	"github.com/johlun99/revio/internal/config"
 )
@@ -39,6 +40,14 @@ func NewRouter(pool *pgxpool.Pool) http.Handler {
 	authHandler := admin.NewAuthHandler(pool, cfg.JWTSecret)
 
 	r.Route("/api/v1", func(r chi.Router) {
+		// Public widget API (API key auth)
+		publicReviews := public.NewReviewsHandler(pool)
+		r.Group(func(r chi.Router) {
+			r.Use(authmw.RequireAPIKey(pool))
+			r.Get("/reviews", publicReviews.List)
+			r.Post("/reviews", publicReviews.Submit)
+		})
+
 		// Public auth routes
 		r.Post("/admin/auth/login", authHandler.Login)
 		r.Post("/admin/auth/logout", authHandler.Logout)
