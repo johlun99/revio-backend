@@ -58,6 +58,9 @@ func NewRouter(pool *pgxpool.Pool) http.Handler {
 
 			r.Get("/admin/auth/me", authHandler.Me)
 
+			dashboardHandler := admin.NewDashboardHandler(pool)
+			r.Get("/admin/stats", dashboardHandler.Stats)
+
 			reviewsHandler := admin.NewReviewsHandler(pool)
 			r.Get("/admin/reviews", reviewsHandler.List)
 			r.Get("/admin/reviews/{id}", reviewsHandler.Get)
@@ -67,6 +70,12 @@ func NewRouter(pool *pgxpool.Pool) http.Handler {
 			r.Get("/admin/tenants", tenantsHandler.List)
 			r.Post("/admin/tenants", tenantsHandler.Create)
 			r.Get("/admin/tenants/{id}", tenantsHandler.Get)
+
+			productsHandler := admin.NewProductsHandler(pool)
+			r.Get("/admin/products", productsHandler.List)
+			r.Post("/admin/products", productsHandler.Create)
+			r.Get("/admin/products/{id}", productsHandler.Get)
+			r.Delete("/admin/products/{id}", productsHandler.Delete)
 		})
 	})
 
