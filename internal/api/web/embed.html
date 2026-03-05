@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --rv-bg:           #ffffff;
+      --rv-surface:      #f9fafb;
+      --rv-border:       #e5e7eb;
+      --rv-text:         #111827;
+      --rv-muted:        #6b7280;
+      --rv-star:         #f59e0b;
+      --rv-star-empty:   #d1d5db;
+      --rv-accent:       #dc2626;
+      --rv-accent-hover: #b91c1c;
+      --rv-radius:       10px;
+      --rv-font:         system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--rv-font);
+      background: var(--rv-bg);
+      color: var(--rv-text);
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Summary ── */
+    .rv-summary {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--rv-border);
+      margin-bottom: 16px;
+    }
+    .rv-avg { font-size: 44px; font-weight: 700; line-height: 1; letter-spacing: -1px; }
+    .rv-summary-meta { display: flex; flex-direction: column; gap: 5px; }
+    .rv-stars { display: inline-flex; gap: 2px; }
+    .rv-count { font-size: 12px; color: var(--rv-muted); }
+
+    /* ── Review cards ── */
+    .rv-list { display: flex; flex-direction: column; gap: 10px; }
+    .rv-card {
+      border: 1px solid var(--rv-border);
+      border-radius: var(--rv-radius);
+      padding: 14px;
+    }
+    .rv-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+    .rv-author { display: flex; align-items: center; gap: 10px; }
+    .rv-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--rv-surface);
+      border: 1px solid var(--rv-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600;
+      color: var(--rv-muted);
+      flex-shrink: 0;
+    }
+    .rv-author-name { font-weight: 500; font-size: 13px; }
+    .rv-date { font-size: 12px; color: var(--rv-muted); white-space: nowrap; }
+    .rv-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+    .rv-body { color: var(--rv-muted); font-size: 13px; line-height: 1.65; }
+    .rv-verified {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; color: #059669; margin-top: 8px;
+    }
+
+    /* ── Load more ── */
+    .rv-load-more {
+      margin-top: 12px; width: 100%;
+      padding: 9px;
+      background: var(--rv-surface);
+      border: 1px solid var(--rv-border);
+      border-radius: var(--rv-radius);
+      font-size: 13px; color: var(--rv-muted);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      font-family: var(--rv-font);
+    }
+    .rv-load-more:hover { background: var(--rv-border); }
+
+    /* ── Write review button ── */
+    .rv-write-btn {
+      margin-top: 16px; width: 100%;
+      padding: 10px;
+      background: var(--rv-accent); color: white;
+      border: none; border-radius: var(--rv-radius);
+      font-size: 14px; font-weight: 500; font-family: var(--rv-font);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .rv-write-btn:hover { background: var(--rv-accent-hover); }
+
+    /* ── Form ── */
+    .rv-form {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--rv-surface);
+      border: 1px solid var(--rv-border);
+      border-radius: var(--rv-radius);
+    }
+    .rv-form-title { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+    .rv-field { margin-bottom: 10px; }
+    .rv-label { display: block; font-size: 12px; font-weight: 500; color: var(--rv-muted); margin-bottom: 4px; }
+    .rv-input {
+      width: 100%; padding: 8px 10px;
+      border: 1px solid var(--rv-border);
+      border-radius: 6px;
+      font-size: 13px; font-family: var(--rv-font);
+      background: white; color: var(--rv-text);
+      transition: border-color 0.15s;
+    }
+    .rv-input:focus { outline: none; border-color: var(--rv-accent); }
+    .rv-textarea { resize: vertical; min-height: 80px; }
+    .rv-star-picker { display: flex; gap: 4px; }
+    .rv-star-pick { font-size: 24px; color: var(--rv-star-empty); cursor: pointer; transition: color 0.1s; line-height: 1; user-select: none; }
+    .rv-star-pick.on { color: var(--rv-star); }
+    .rv-submit {
+      width: 100%; padding: 9px; margin-top: 4px;
+      background: var(--rv-accent); color: white;
+      border: none; border-radius: 6px;
+      font-size: 13px; font-weight: 500; font-family: var(--rv-font);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .rv-submit:hover { background: var(--rv-accent-hover); }
+    .rv-submit:disabled { opacity: 0.55; cursor: default; }
+    .rv-form-error { color: #dc2626; font-size: 12px; margin-top: 8px; }
+    .rv-form-success { text-align: center; padding: 20px 0 8px; }
+    .rv-form-success svg { display: block; margin: 0 auto 10px; }
+    .rv-form-success p { font-size: 13px; color: var(--rv-muted); }
+
+    /* ── Empty / error states ── */
+    .rv-empty { text-align: center; padding: 32px 16px; color: var(--rv-muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div id="rv-root"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var sp       = new URLSearchParams(location.search);
+      var apiKey   = sp.get('api-key')    || '';
+      var productId = sp.get('product-id') || '';
+      var BASE     = location.origin;
+
+      // ── State ────────────────────────────────────────────────────────────────
+      var S = {
+        reviews:     [],
+        total:       0,
+        avgRating:   0,
+        offset:      0,
+        limit:       10,
+        loading:     false,
+        formOpen:    false,
+        formRating:  0,
+        formSuccess: false,
+        formError:   '',
+        hoverRating: 0,
+      };
+
+      // ── Helpers ──────────────────────────────────────────────────────────────
+      function esc(s) {
+        return String(s)
+          .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+          .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      function renderStars(rating, size) {
+        size = size || 15;
+        var out = '<span class="rv-stars">';
+        for (var i = 1; i <= 5; i++) {
+          var filled = i <= Math.round(rating);
+          out += '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24"'
+            + ' fill="'+(filled?'#f59e0b':'none')+'"'
+            + ' stroke="'+(filled?'#f59e0b':'#d1d5db')+'"'
+            + ' stroke-width="1.8" stroke-linejoin="round">'
+            + '<polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>';
+        }
+        return out + '</span>';
+      }
+
+      function fmtDate(iso) {
+        return new Date(iso).toLocaleDateString('en', { year:'numeric', month:'short', day:'numeric' });
+      }
+
+      function notifyResize() {
+        try { parent.postMessage({ type: 'revio-resize', height: document.body.scrollHeight }, '*'); } catch(e) {}
+      }
+
+      // ── Render ───────────────────────────────────────────────────────────────
+      function render() {
+        var html = '';
+
+        // Summary
+        if (S.total > 0) {
+          html += '<div class="rv-summary">'
+            + '<div class="rv-avg">'+S.avgRating.toFixed(1)+'</div>'
+            + '<div class="rv-summary-meta">'
+            + renderStars(S.avgRating, 18)
+            + '<div class="rv-count">Based on '+S.total+' review'+(S.total!==1?'s':'')+'</div>'
+            + '</div></div>';
+        }
+
+        // Review list
+        html += '<div class="rv-list">';
+        if (!S.loading && S.reviews.length === 0) {
+          html += '<div class="rv-empty">No reviews yet — be the first to leave one!</div>';
+        }
+        for (var i = 0; i < S.reviews.length; i++) {
+          var r = S.reviews[i];
+          html += '<div class="rv-card">'
+            + '<div class="rv-card-top">'
+            + '<div class="rv-author">'
+            + '<div class="rv-avatar">'+esc((r.author_name||'?')[0].toUpperCase())+'</div>'
+            + '<div><div class="rv-author-name">'+esc(r.author_name)+'</div>'
+            + renderStars(r.rating, 13)+'</div>'
+            + '</div>'
+            + '<div class="rv-date">'+fmtDate(r.created_at)+'</div>'
+            + '</div>';
+          if (r.title) html += '<div class="rv-title">'+esc(r.title)+'</div>';
+          html += '<div class="rv-body">'+esc(r.body)+'</div>';
+          if (r.verified_purchase) {
+            html += '<div class="rv-verified">'
+              + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>'
+              + 'Verified purchase</div>';
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+
+        // Load more
+        if (S.reviews.length < S.total) {
+          html += '<button class="rv-load-more" onclick="rvLoadMore()">'
+            + (S.loading ? 'Loading…' : 'Load more reviews')+'</button>';
+        }
+
+        // Write review button
+        if (!S.formOpen) {
+          html += '<button class="rv-write-btn" onclick="rvOpenForm()">Write a review</button>';
+        }
+
+        // Review form
+        if (S.formOpen) {
+          html += '<div class="rv-form"><div class="rv-form-title">Write a review</div>';
+          if (S.formSuccess) {
+            html += '<div class="rv-form-success">'
+              + '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>'
+              + '<p>Thanks for your review! It will appear after moderation.</p></div>';
+          } else {
+            // Star picker
+            html += '<div class="rv-field"><label class="rv-label">Rating *</label>'
+              + '<div class="rv-star-picker" id="rv-picker">';
+            var displayRating = S.hoverRating || S.formRating;
+            for (var si = 1; si <= 5; si++) {
+              html += '<span class="rv-star-pick'+(si<=displayRating?' on':'')+'"'
+                + ' onclick="rvSetRating('+si+')"'
+                + ' onmouseover="rvHover('+si+')"'
+                + ' onmouseout="rvUnhover()">★</span>';
+            }
+            html += '</div></div>';
+
+            html += '<div class="rv-field"><label class="rv-label">Name *</label>'
+              + '<input id="rv-name" class="rv-input" type="text" placeholder="Your name" /></div>';
+            html += '<div class="rv-field"><label class="rv-label">Email <span style="font-weight:400">(optional)</span></label>'
+              + '<input id="rv-email" class="rv-input" type="email" placeholder="you@example.com" /></div>';
+            html += '<div class="rv-field"><label class="rv-label">Title <span style="font-weight:400">(optional)</span></label>'
+              + '<input id="rv-title" class="rv-input" type="text" placeholder="Summary of your experience" /></div>';
+            html += '<div class="rv-field"><label class="rv-label">Review *</label>'
+              + '<textarea id="rv-body" class="rv-input rv-textarea" placeholder="Share your experience…"></textarea></div>';
+
+            if (S.formError) html += '<div class="rv-form-error">'+esc(S.formError)+'</div>';
+            html += '<button class="rv-submit" onclick="rvSubmit()">Submit review</button>';
+          }
+          html += '</div>';
+        }
+
+        document.getElementById('rv-root').innerHTML = html;
+        notifyResize();
+      }
+
+      // ── API ──────────────────────────────────────────────────────────────────
+      function fetchReviews(append) {
+        S.loading = true;
+        fetch(BASE+'/api/v1/reviews?product_id='+encodeURIComponent(productId)+'&limit='+S.limit+'&offset='+S.offset, {
+          headers: { 'X-API-Key': apiKey }
+        })
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            S.reviews = append ? S.reviews.concat(data.data||[]) : (data.data||[]);
+            S.total = data.total || 0;
+            S.avgRating = parseFloat(data.avg_rating) || 0;
+            S.loading = false;
+            render();
+          })
+          .catch(function() { S.loading = false; render(); });
+      }
+
+      // ── Handlers (exposed to inline onclick) ─────────────────────────────────
+      window.rvLoadMore = function() { S.offset += S.limit; fetchReviews(true); };
+      window.rvOpenForm = function() { S.formOpen = true; render(); };
+
+      window.rvSetRating = function(r) { S.formRating = r; S.hoverRating = 0; render(); };
+      window.rvHover    = function(r) { S.hoverRating = r; render(); };
+      window.rvUnhover  = function()  { S.hoverRating = 0; render(); };
+
+      window.rvSubmit = function() {
+        var name  = (document.getElementById('rv-name')  ||{}).value||'';
+        var email = (document.getElementById('rv-email') ||{}).value||'';
+        var title = (document.getElementById('rv-title') ||{}).value||'';
+        var body  = (document.getElementById('rv-body')  ||{}).value||'';
+
+        if (!name.trim())       { S.formError='Name is required.';           render(); return; }
+        if (!body.trim())       { S.formError='Review text is required.';     render(); return; }
+        if (S.formRating < 1)  { S.formError='Please select a star rating.'; render(); return; }
+
+        var payload = { product_id: productId, author_name: name.trim(), rating: S.formRating, body: body.trim() };
+        if (email.trim()) payload.author_email = email.trim();
+        if (title.trim()) payload.title = title.trim();
+
+        S.formError = '';
+        var btn = document.querySelector('.rv-submit');
+        if (btn) btn.disabled = true;
+
+        fetch(BASE+'/api/v1/reviews', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'X-API-Key': apiKey },
+          body: JSON.stringify(payload)
+        })
+          .then(function(res) {
+            if (!res.ok) return res.json().then(function(e) { throw new Error(e.error||'Submission failed'); });
+            S.formSuccess = true;
+            S.offset = 0;
+            fetchReviews(false);
+          })
+          .catch(function(err) {
+            S.formError = err.message || 'Something went wrong. Please try again.';
+            render();
+          });
+      };
+
+      // ── Boot ─────────────────────────────────────────────────────────────────
+      var ro = new ResizeObserver(notifyResize);
+      ro.observe(document.body);
+
+      if (!apiKey || !productId) {
+        document.getElementById('rv-root').innerHTML = '<div class="rv-empty">Missing <code>api-key</code> or <code>product-id</code> parameters.</div>';
+      } else {
+        render();
+        fetchReviews(false);
+      }
+    })();
+  </script>
+</body>
+</html>

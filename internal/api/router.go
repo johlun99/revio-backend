@@ -41,6 +41,13 @@ func NewRouter(pool *pgxpool.Pool) http.Handler {
 		_, _ = w.Write(widgetJS)
 	})
 
+	// Embeddable iFrame page
+	r.Get("/embed", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Cache-Control", "public, max-age=300")
+		_, _ = w.Write(embedHTML)
+	})
+
 	healthHandler := handler.NewHealthHandler(pool)
 	r.Get("/health", healthHandler.Handle)
 
