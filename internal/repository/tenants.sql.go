@@ -92,3 +92,58 @@ func (q *Queries) ListTenants(ctx context.Context) ([]ListTenantsRow, error) {
 	}
 	return items, nil
 }
+
+const rotateTenantAPIKey = `-- name: RotateTenantAPIKey :one
+UPDATE tenants SET api_key = gen_random_uuid()::text, updated_at = now()
+WHERE id = $1
+RETURNING id, name, api_key, created_at
+`
+
+type RotateTenantAPIKeyRow struct {
+	ID        pgtype.UUID        `json:"id"`
+	Name      string             `json:"name"`
+	ApiKey    string             `json:"api_key"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) RotateTenantAPIKey(ctx context.Context, id pgtype.UUID) (RotateTenantAPIKeyRow, error) {
+	row := q.db.QueryRow(ctx, rotateTenantAPIKey, id)
+	var i RotateTenantAPIKeyRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.ApiKey,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateTenantName = `-- name: UpdateTenantName :one
+UPDATE tenants SET name = $1, updated_at = now()
+WHERE id = $2
+RETURNING id, name, api_key, created_at
+`
+
+type UpdateTenantNameParams struct {
+	Name string      `json:"name"`
+	ID   pgtype.UUID `json:"id"`
+}
+
+type UpdateTenantNameRow struct {
+	ID        pgtype.UUID        `json:"id"`
+	Name      string             `json:"name"`
+	ApiKey    string             `json:"api_key"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) UpdateTenantName(ctx context.Context, arg UpdateTenantNameParams) (UpdateTenantNameRow, error) {
+	row := q.db.QueryRow(ctx, updateTenantName, arg.Name, arg.ID)
+	var i UpdateTenantNameRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.ApiKey,
+		&i.CreatedAt,
+	)
+	return i, err
+}
