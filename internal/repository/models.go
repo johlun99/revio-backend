@@ -173,9 +173,10 @@ type Review struct {
 }
 
 type Tenant struct {
-	ID        pgtype.UUID        `json:"id"`
-	Name      string             `json:"name"`
-	ApiKey    string             `json:"api_key"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	ID         pgtype.UUID        `json:"id"`
+	Name       string             `json:"name"`
+	ApiKey     string             `json:"api_key"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+	WebhookUrl *string            `json:"webhook_url"`
 }
