@@ -39,3 +39,38 @@ func (q *Queries) GetDashboardStats(ctx context.Context) (GetDashboardStatsRow, 
 	)
 	return i, err
 }
+
+const reviewTrends = `-- name: ReviewTrends :many
+SELECT
+    TO_CHAR(DATE(created_at AT TIME ZONE 'UTC'), 'YYYY-MM-DD') AS day,
+    COUNT(*)::int AS count
+FROM reviews
+WHERE created_at >= NOW() - INTERVAL '30 days'
+GROUP BY day
+ORDER BY day ASC
+`
+
+type ReviewTrendsRow struct {
+	Day   string `json:"day"`
+	Count int32  `json:"count"`
+}
+
+func (q *Queries) ReviewTrends(ctx context.Context) ([]ReviewTrendsRow, error) {
+	rows, err := q.db.Query(ctx, reviewTrends)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReviewTrendsRow
+	for rows.Next() {
+		var i ReviewTrendsRow
+		if err := rows.Scan(&i.Day, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

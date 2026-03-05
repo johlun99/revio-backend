@@ -26,3 +26,16 @@ func (h *DashboardHandler) Stats(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(stats)
 }
+
+func (h *DashboardHandler) Trends(w http.ResponseWriter, r *http.Request) {
+	rows, err := h.queries.ReviewTrends(r.Context())
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to load trends")
+		return
+	}
+	if rows == nil {
+		rows = []repository.ReviewTrendsRow{}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(rows)
+}

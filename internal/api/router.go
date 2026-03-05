@@ -70,6 +70,7 @@ func NewRouter(pool *pgxpool.Pool) http.Handler {
 
 			dashboardHandler := admin.NewDashboardHandler(pool)
 			r.Get("/admin/stats", dashboardHandler.Stats)
+			r.Get("/admin/stats/trends", dashboardHandler.Trends)
 
 			reviewsHandler := admin.NewReviewsHandler(pool)
 			r.Get("/admin/reviews", reviewsHandler.List)
