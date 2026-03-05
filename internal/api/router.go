@@ -38,7 +38,7 @@ func NewRouter(pool *pgxpool.Pool) http.Handler {
 	r.Get("/widget.js", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
 		w.Header().Set("Cache-Control", "public, max-age=3600")
-		w.Write(widgetJS)
+		_, _ = w.Write(widgetJS)
 	})
 
 	healthHandler := handler.NewHealthHandler(pool)

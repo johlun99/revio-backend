@@ -16,6 +16,13 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	cfg := config.Load()
 
 	logger := newLogger(cfg.AppEnv)
@@ -23,14 +30,12 @@ func main() {
 
 	pool, err := db.Connect(context.Background(), cfg.DatabaseURL)
 	if err != nil {
-		slog.Error("failed to connect to database", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("connect to database: %w", err)
 	}
 	defer pool.Close()
 
 	if err := db.RunMigrations(pool); err != nil {
-		slog.Error("failed to run migrations", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("run migrations: %w", err)
 	}
 
 	router := api.NewRouter(pool)
@@ -65,6 +70,7 @@ func main() {
 	}
 
 	slog.Info("server stopped")
+	return nil
 }
 
 func newLogger(env string) *slog.Logger {

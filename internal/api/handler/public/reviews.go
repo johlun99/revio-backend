@@ -189,4 +189,3 @@ func splitHostPort(addr string) (host, port string, err error) {
 	}
 	return addr[:i], addr[i+1:], nil
 }
-

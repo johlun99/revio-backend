@@ -6,11 +6,11 @@ import (
 )
 
 type Config struct {
-	DatabaseURL         string
-	AppEnv              string
-	AppPort             string
-	JWTSecret           string
-	CORSAllowedOrigins  string
+	DatabaseURL        string
+	AppEnv             string
+	AppPort            string
+	JWTSecret          string
+	CORSAllowedOrigins string
 }
 
 func Load() *Config {

@@ -32,10 +32,10 @@ func main() {
 		fmt.Fprintf(os.Stderr, "db connect: %v\n", err)
 		os.Exit(1)
 	}
-	defer pool.Close()
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(*password), bcrypt.DefaultCost)
 	if err != nil {
+		pool.Close()
 		fmt.Fprintf(os.Stderr, "hash password: %v\n", err)
 		os.Exit(1)
 	}
@@ -48,6 +48,7 @@ func main() {
 		 RETURNING id`,
 		*email, string(hash), *role,
 	).Scan(&id)
+	pool.Close()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "insert user: %v\n", err)
 		os.Exit(1)
