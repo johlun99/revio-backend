@@ -98,6 +98,35 @@ func (h *ProductsHandler) Create(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(row)
 }
 
+func (h *ProductsHandler) Update(w http.ResponseWriter, r *http.Request) {
+	var uid pgtype.UUID
+	if err := uid.Scan(chi.URLParam(r, "id")); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid product id")
+		return
+	}
+	var req struct {
+		Name string `json:"name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
+		writeError(w, http.StatusBadRequest, "name is required")
+		return
+	}
+	row, err := h.queries.UpdateProductName(r.Context(), repository.UpdateProductNameParams{
+		ID:   uid,
+		Name: req.Name,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			writeError(w, http.StatusNotFound, "product not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "failed to update product")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(row)
+}
+
 func (h *ProductsHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	var uid pgtype.UUID
 	if err := uid.Scan(chi.URLParam(r, "id")); err != nil {
