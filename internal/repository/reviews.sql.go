@@ -17,15 +17,17 @@ SELECT COUNT(*) FROM reviews
 WHERE
     ($1::review_status IS NULL OR status = $1)
     AND ($2::uuid IS NULL OR tenant_id = $2)
+    AND ($3::uuid IS NULL OR product_id = $3)
 `
 
 type CountReviewsParams struct {
-	Status   NullReviewStatus `json:"status"`
-	TenantID pgtype.UUID      `json:"tenant_id"`
+	Status    NullReviewStatus `json:"status"`
+	TenantID  pgtype.UUID      `json:"tenant_id"`
+	ProductID pgtype.UUID      `json:"product_id"`
 }
 
 func (q *Queries) CountReviews(ctx context.Context, arg CountReviewsParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countReviews, arg.Status, arg.TenantID)
+	row := q.db.QueryRow(ctx, countReviews, arg.Status, arg.TenantID, arg.ProductID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -122,16 +124,18 @@ JOIN tenants t  ON t.id = r.tenant_id
 WHERE
     ($1::review_status IS NULL OR r.status = $1)
     AND ($2::uuid IS NULL OR r.tenant_id = $2)
+    AND ($3::uuid IS NULL OR r.product_id = $3)
 ORDER BY r.created_at DESC
-LIMIT  $4
-OFFSET $3
+LIMIT  $5
+OFFSET $4
 `
 
 type ListReviewsParams struct {
-	Status   NullReviewStatus `json:"status"`
-	TenantID pgtype.UUID      `json:"tenant_id"`
-	Offset   int32            `json:"offset"`
-	Limit    int32            `json:"limit"`
+	Status    NullReviewStatus `json:"status"`
+	TenantID  pgtype.UUID      `json:"tenant_id"`
+	ProductID pgtype.UUID      `json:"product_id"`
+	Offset    int32            `json:"offset"`
+	Limit     int32            `json:"limit"`
 }
 
 type ListReviewsRow struct {
@@ -157,6 +161,7 @@ func (q *Queries) ListReviews(ctx context.Context, arg ListReviewsParams) ([]Lis
 	rows, err := q.db.Query(ctx, listReviews,
 		arg.Status,
 		arg.TenantID,
+		arg.ProductID,
 		arg.Offset,
 		arg.Limit,
 	)
