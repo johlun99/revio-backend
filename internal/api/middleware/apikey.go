@@ -16,8 +16,10 @@ type tenantKey string
 const TenantKey tenantKey = "tenant"
 
 type Tenant struct {
-	ID   pgtype.UUID
-	Name string
+	ID         pgtype.UUID
+	Name       string
+	APIKey     string
+	WebhookURL *string
 }
 
 func RequireAPIKey(pool *pgxpool.Pool) func(http.Handler) http.Handler {
@@ -36,7 +38,12 @@ func RequireAPIKey(pool *pgxpool.Pool) func(http.Handler) http.Handler {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), TenantKey, Tenant{ID: row.ID, Name: row.Name})
+			ctx := context.WithValue(r.Context(), TenantKey, Tenant{
+				ID:         row.ID,
+				Name:       row.Name,
+				APIKey:     row.ApiKey,
+				WebhookURL: row.WebhookUrl,
+			})
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

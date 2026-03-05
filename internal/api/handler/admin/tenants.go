@@ -102,6 +102,39 @@ func (h *TenantsHandler) Update(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(row)
 }
 
+func (h *TenantsHandler) SetWebhook(w http.ResponseWriter, r *http.Request) {
+	var uid pgtype.UUID
+	if err := uid.Scan(chi.URLParam(r, "id")); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid tenant id")
+		return
+	}
+	var req struct {
+		WebhookURL *string `json:"webhook_url"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	// Empty string is treated as clearing the webhook
+	if req.WebhookURL != nil && *req.WebhookURL == "" {
+		req.WebhookURL = nil
+	}
+	row, err := h.queries.UpdateTenantWebhook(r.Context(), repository.UpdateTenantWebhookParams{
+		ID:         uid,
+		WebhookUrl: req.WebhookURL,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			writeError(w, http.StatusNotFound, "tenant not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "failed to update webhook")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(row)
+}
+
 func (h *TenantsHandler) RotateKey(w http.ResponseWriter, r *http.Request) {
 	var uid pgtype.UUID
 	if err := uid.Scan(chi.URLParam(r, "id")); err != nil {

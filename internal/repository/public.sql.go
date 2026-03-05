@@ -102,18 +102,25 @@ func (q *Queries) GetProductByExternalID(ctx context.Context, arg GetProductByEx
 }
 
 const getTenantByAPIKey = `-- name: GetTenantByAPIKey :one
-SELECT id, name FROM tenants WHERE api_key = $1
+SELECT id, name, api_key, webhook_url FROM tenants WHERE api_key = $1
 `
 
 type GetTenantByAPIKeyRow struct {
-	ID   pgtype.UUID `json:"id"`
-	Name string      `json:"name"`
+	ID         pgtype.UUID `json:"id"`
+	Name       string      `json:"name"`
+	ApiKey     string      `json:"api_key"`
+	WebhookUrl *string     `json:"webhook_url"`
 }
 
 func (q *Queries) GetTenantByAPIKey(ctx context.Context, apiKey string) (GetTenantByAPIKeyRow, error) {
 	row := q.db.QueryRow(ctx, getTenantByAPIKey, apiKey)
 	var i GetTenantByAPIKeyRow
-	err := row.Scan(&i.ID, &i.Name)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.ApiKey,
+		&i.WebhookUrl,
+	)
 	return i, err
 }
 

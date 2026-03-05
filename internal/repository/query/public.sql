@@ -1,5 +1,5 @@
 -- name: GetTenantByAPIKey :one
-SELECT id, name FROM tenants WHERE api_key = $1;
+SELECT id, name, api_key, webhook_url FROM tenants WHERE api_key = $1;
 
 -- name: GetProductByExternalID :one
 SELECT id FROM products WHERE tenant_id = $1 AND external_id = $2;

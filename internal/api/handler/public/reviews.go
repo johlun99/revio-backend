@@ -13,6 +13,7 @@ import (
 
 	apimw "github.com/johlun99/revio/internal/api/middleware"
 	"github.com/johlun99/revio/internal/repository"
+	"github.com/johlun99/revio/internal/webhook"
 )
 
 type ReviewsHandler struct {
@@ -92,6 +93,22 @@ func (h *ReviewsHandler) Submit(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "internal server error")
 		return
+	}
+
+	// Fire webhook asynchronously — does not block the response.
+	if tenant.WebhookURL != nil {
+		webhook.Dispatch(*tenant.WebhookURL, tenant.APIKey, webhook.ReviewDetail{
+			ID:               webhook.UUIDString(review.ID),
+			ProductID:        webhook.UUIDString(review.ProductID),
+			TenantID:         webhook.UUIDString(review.TenantID),
+			AuthorName:       review.AuthorName,
+			Rating:           review.Rating,
+			Title:            review.Title,
+			Body:             review.Body,
+			Status:           string(review.Status),
+			VerifiedPurchase: review.VerifiedPurchase,
+			CreatedAt:        review.CreatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
+		})
 	}
 
 	w.Header().Set("Content-Type", "application/json")

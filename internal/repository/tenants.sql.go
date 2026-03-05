@@ -12,14 +12,15 @@ import (
 )
 
 const createTenant = `-- name: CreateTenant :one
-INSERT INTO tenants (name) VALUES ($1) RETURNING id, name, api_key, created_at
+INSERT INTO tenants (name) VALUES ($1) RETURNING id, name, api_key, webhook_url, created_at
 `
 
 type CreateTenantRow struct {
-	ID        pgtype.UUID        `json:"id"`
-	Name      string             `json:"name"`
-	ApiKey    string             `json:"api_key"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID         pgtype.UUID        `json:"id"`
+	Name       string             `json:"name"`
+	ApiKey     string             `json:"api_key"`
+	WebhookUrl *string            `json:"webhook_url"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) CreateTenant(ctx context.Context, name string) (CreateTenantRow, error) {
@@ -29,20 +30,22 @@ func (q *Queries) CreateTenant(ctx context.Context, name string) (CreateTenantRo
 		&i.ID,
 		&i.Name,
 		&i.ApiKey,
+		&i.WebhookUrl,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getTenant = `-- name: GetTenant :one
-SELECT id, name, api_key, created_at FROM tenants WHERE id = $1
+SELECT id, name, api_key, webhook_url, created_at FROM tenants WHERE id = $1
 `
 
 type GetTenantRow struct {
-	ID        pgtype.UUID        `json:"id"`
-	Name      string             `json:"name"`
-	ApiKey    string             `json:"api_key"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID         pgtype.UUID        `json:"id"`
+	Name       string             `json:"name"`
+	ApiKey     string             `json:"api_key"`
+	WebhookUrl *string            `json:"webhook_url"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) GetTenant(ctx context.Context, id pgtype.UUID) (GetTenantRow, error) {
@@ -52,20 +55,22 @@ func (q *Queries) GetTenant(ctx context.Context, id pgtype.UUID) (GetTenantRow, 
 		&i.ID,
 		&i.Name,
 		&i.ApiKey,
+		&i.WebhookUrl,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listTenants = `-- name: ListTenants :many
-SELECT id, name, api_key, created_at FROM tenants ORDER BY created_at DESC
+SELECT id, name, api_key, webhook_url, created_at FROM tenants ORDER BY created_at DESC
 `
 
 type ListTenantsRow struct {
-	ID        pgtype.UUID        `json:"id"`
-	Name      string             `json:"name"`
-	ApiKey    string             `json:"api_key"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID         pgtype.UUID        `json:"id"`
+	Name       string             `json:"name"`
+	ApiKey     string             `json:"api_key"`
+	WebhookUrl *string            `json:"webhook_url"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) ListTenants(ctx context.Context) ([]ListTenantsRow, error) {
@@ -81,6 +86,7 @@ func (q *Queries) ListTenants(ctx context.Context) ([]ListTenantsRow, error) {
 			&i.ID,
 			&i.Name,
 			&i.ApiKey,
+			&i.WebhookUrl,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -96,14 +102,15 @@ func (q *Queries) ListTenants(ctx context.Context) ([]ListTenantsRow, error) {
 const rotateTenantAPIKey = `-- name: RotateTenantAPIKey :one
 UPDATE tenants SET api_key = gen_random_uuid()::text, updated_at = now()
 WHERE id = $1
-RETURNING id, name, api_key, created_at
+RETURNING id, name, api_key, webhook_url, created_at
 `
 
 type RotateTenantAPIKeyRow struct {
-	ID        pgtype.UUID        `json:"id"`
-	Name      string             `json:"name"`
-	ApiKey    string             `json:"api_key"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID         pgtype.UUID        `json:"id"`
+	Name       string             `json:"name"`
+	ApiKey     string             `json:"api_key"`
+	WebhookUrl *string            `json:"webhook_url"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) RotateTenantAPIKey(ctx context.Context, id pgtype.UUID) (RotateTenantAPIKeyRow, error) {
@@ -113,6 +120,7 @@ func (q *Queries) RotateTenantAPIKey(ctx context.Context, id pgtype.UUID) (Rotat
 		&i.ID,
 		&i.Name,
 		&i.ApiKey,
+		&i.WebhookUrl,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -121,7 +129,7 @@ func (q *Queries) RotateTenantAPIKey(ctx context.Context, id pgtype.UUID) (Rotat
 const updateTenantName = `-- name: UpdateTenantName :one
 UPDATE tenants SET name = $1, updated_at = now()
 WHERE id = $2
-RETURNING id, name, api_key, created_at
+RETURNING id, name, api_key, webhook_url, created_at
 `
 
 type UpdateTenantNameParams struct {
@@ -130,10 +138,11 @@ type UpdateTenantNameParams struct {
 }
 
 type UpdateTenantNameRow struct {
-	ID        pgtype.UUID        `json:"id"`
-	Name      string             `json:"name"`
-	ApiKey    string             `json:"api_key"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID         pgtype.UUID        `json:"id"`
+	Name       string             `json:"name"`
+	ApiKey     string             `json:"api_key"`
+	WebhookUrl *string            `json:"webhook_url"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) UpdateTenantName(ctx context.Context, arg UpdateTenantNameParams) (UpdateTenantNameRow, error) {
@@ -143,6 +152,39 @@ func (q *Queries) UpdateTenantName(ctx context.Context, arg UpdateTenantNamePara
 		&i.ID,
 		&i.Name,
 		&i.ApiKey,
+		&i.WebhookUrl,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateTenantWebhook = `-- name: UpdateTenantWebhook :one
+UPDATE tenants SET webhook_url = $1, updated_at = now()
+WHERE id = $2
+RETURNING id, name, api_key, webhook_url, created_at
+`
+
+type UpdateTenantWebhookParams struct {
+	WebhookUrl *string     `json:"webhook_url"`
+	ID         pgtype.UUID `json:"id"`
+}
+
+type UpdateTenantWebhookRow struct {
+	ID         pgtype.UUID        `json:"id"`
+	Name       string             `json:"name"`
+	ApiKey     string             `json:"api_key"`
+	WebhookUrl *string            `json:"webhook_url"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) UpdateTenantWebhook(ctx context.Context, arg UpdateTenantWebhookParams) (UpdateTenantWebhookRow, error) {
+	row := q.db.QueryRow(ctx, updateTenantWebhook, arg.WebhookUrl, arg.ID)
+	var i UpdateTenantWebhookRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.ApiKey,
+		&i.WebhookUrl,
 		&i.CreatedAt,
 	)
 	return i, err
