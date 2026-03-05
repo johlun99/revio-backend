@@ -83,11 +83,14 @@ func NewRouter(pool *pgxpool.Pool) http.Handler {
 			r.Get("/admin/tenants", tenantsHandler.List)
 			r.Post("/admin/tenants", tenantsHandler.Create)
 			r.Get("/admin/tenants/{id}", tenantsHandler.Get)
+			r.Patch("/admin/tenants/{id}", tenantsHandler.Update)
+			r.Post("/admin/tenants/{id}/rotate-key", tenantsHandler.RotateKey)
 
 			productsHandler := admin.NewProductsHandler(pool)
 			r.Get("/admin/products", productsHandler.List)
 			r.Post("/admin/products", productsHandler.Create)
 			r.Get("/admin/products/{id}", productsHandler.Get)
+			r.Patch("/admin/products/{id}", productsHandler.Update)
 			r.Delete("/admin/products/{id}", productsHandler.Delete)
 
 			usersHandler := admin.NewUsersHandler(pool)
