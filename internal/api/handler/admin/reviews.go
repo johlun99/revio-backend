@@ -49,6 +49,15 @@ func (h *ReviewsHandler) List(w http.ResponseWriter, r *http.Request) {
 		params.TenantID = uid
 	}
 
+	if pid := r.URL.Query().Get("product_id"); pid != "" {
+		var uid pgtype.UUID
+		if err := uid.Scan(pid); err != nil {
+			writeError(w, http.StatusBadRequest, "invalid product_id")
+			return
+		}
+		params.ProductID = uid
+	}
+
 	rows, err := h.queries.ListReviews(r.Context(), params)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to list reviews")
@@ -56,8 +65,9 @@ func (h *ReviewsHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	total, err := h.queries.CountReviews(r.Context(), repository.CountReviewsParams{
-		Status:   params.Status,
-		TenantID: params.TenantID,
+		Status:    params.Status,
+		TenantID:  params.TenantID,
+		ProductID: params.ProductID,
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to count reviews")
