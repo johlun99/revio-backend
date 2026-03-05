@@ -58,6 +58,20 @@ func (h *ReviewsHandler) List(w http.ResponseWriter, r *http.Request) {
 		params.ProductID = uid
 	}
 
+	if rStr := r.URL.Query().Get("rating"); rStr != "" {
+		n, err := strconv.Atoi(rStr)
+		if err != nil || n < 1 || n > 5 {
+			writeError(w, http.StatusBadRequest, "invalid rating value")
+			return
+		}
+		v := int32(n)
+		params.Rating = &v
+	}
+
+	if s := r.URL.Query().Get("search"); s != "" {
+		params.Search = &s
+	}
+
 	rows, err := h.queries.ListReviews(r.Context(), params)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to list reviews")
@@ -68,6 +82,8 @@ func (h *ReviewsHandler) List(w http.ResponseWriter, r *http.Request) {
 		Status:    params.Status,
 		TenantID:  params.TenantID,
 		ProductID: params.ProductID,
+		Rating:    params.Rating,
+		Search:    params.Search,
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to count reviews")

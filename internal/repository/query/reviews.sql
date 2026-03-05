@@ -23,16 +23,28 @@ WHERE
     (sqlc.narg('status')::review_status IS NULL OR r.status = sqlc.narg('status'))
     AND (sqlc.narg('tenant_id')::uuid IS NULL OR r.tenant_id = sqlc.narg('tenant_id'))
     AND (sqlc.narg('product_id')::uuid IS NULL OR r.product_id = sqlc.narg('product_id'))
+    AND (sqlc.narg('rating')::int IS NULL OR r.rating = sqlc.narg('rating')::int)
+    AND (sqlc.narg('search')::text IS NULL OR (
+        r.author_name ILIKE '%' || sqlc.narg('search')::text || '%'
+        OR r.title     ILIKE '%' || sqlc.narg('search')::text || '%'
+        OR r.body      ILIKE '%' || sqlc.narg('search')::text || '%'
+    ))
 ORDER BY r.created_at DESC
 LIMIT  sqlc.arg('limit')
 OFFSET sqlc.arg('offset');
 
 -- name: CountReviews :one
-SELECT COUNT(*) FROM reviews
+SELECT COUNT(*) FROM reviews r
 WHERE
-    (sqlc.narg('status')::review_status IS NULL OR status = sqlc.narg('status'))
-    AND (sqlc.narg('tenant_id')::uuid IS NULL OR tenant_id = sqlc.narg('tenant_id'))
-    AND (sqlc.narg('product_id')::uuid IS NULL OR product_id = sqlc.narg('product_id'));
+    (sqlc.narg('status')::review_status IS NULL OR r.status = sqlc.narg('status'))
+    AND (sqlc.narg('tenant_id')::uuid IS NULL OR r.tenant_id = sqlc.narg('tenant_id'))
+    AND (sqlc.narg('product_id')::uuid IS NULL OR r.product_id = sqlc.narg('product_id'))
+    AND (sqlc.narg('rating')::int IS NULL OR r.rating = sqlc.narg('rating')::int)
+    AND (sqlc.narg('search')::text IS NULL OR (
+        r.author_name ILIKE '%' || sqlc.narg('search')::text || '%'
+        OR r.title     ILIKE '%' || sqlc.narg('search')::text || '%'
+        OR r.body      ILIKE '%' || sqlc.narg('search')::text || '%'
+    ));
 
 -- name: GetReview :one
 SELECT

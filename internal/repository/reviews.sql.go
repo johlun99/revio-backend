@@ -13,21 +13,35 @@ import (
 )
 
 const countReviews = `-- name: CountReviews :one
-SELECT COUNT(*) FROM reviews
+SELECT COUNT(*) FROM reviews r
 WHERE
-    ($1::review_status IS NULL OR status = $1)
-    AND ($2::uuid IS NULL OR tenant_id = $2)
-    AND ($3::uuid IS NULL OR product_id = $3)
+    ($1::review_status IS NULL OR r.status = $1)
+    AND ($2::uuid IS NULL OR r.tenant_id = $2)
+    AND ($3::uuid IS NULL OR r.product_id = $3)
+    AND ($4::int IS NULL OR r.rating = $4::int)
+    AND ($5::text IS NULL OR (
+        r.author_name ILIKE '%' || $5::text || '%'
+        OR r.title     ILIKE '%' || $5::text || '%'
+        OR r.body      ILIKE '%' || $5::text || '%'
+    ))
 `
 
 type CountReviewsParams struct {
 	Status    NullReviewStatus `json:"status"`
 	TenantID  pgtype.UUID      `json:"tenant_id"`
 	ProductID pgtype.UUID      `json:"product_id"`
+	Rating    *int32           `json:"rating"`
+	Search    *string          `json:"search"`
 }
 
 func (q *Queries) CountReviews(ctx context.Context, arg CountReviewsParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countReviews, arg.Status, arg.TenantID, arg.ProductID)
+	row := q.db.QueryRow(ctx, countReviews,
+		arg.Status,
+		arg.TenantID,
+		arg.ProductID,
+		arg.Rating,
+		arg.Search,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -125,15 +139,23 @@ WHERE
     ($1::review_status IS NULL OR r.status = $1)
     AND ($2::uuid IS NULL OR r.tenant_id = $2)
     AND ($3::uuid IS NULL OR r.product_id = $3)
+    AND ($4::int IS NULL OR r.rating = $4::int)
+    AND ($5::text IS NULL OR (
+        r.author_name ILIKE '%' || $5::text || '%'
+        OR r.title     ILIKE '%' || $5::text || '%'
+        OR r.body      ILIKE '%' || $5::text || '%'
+    ))
 ORDER BY r.created_at DESC
-LIMIT  $5
-OFFSET $4
+LIMIT  $7
+OFFSET $6
 `
 
 type ListReviewsParams struct {
 	Status    NullReviewStatus `json:"status"`
 	TenantID  pgtype.UUID      `json:"tenant_id"`
 	ProductID pgtype.UUID      `json:"product_id"`
+	Rating    *int32           `json:"rating"`
+	Search    *string          `json:"search"`
 	Offset    int32            `json:"offset"`
 	Limit     int32            `json:"limit"`
 }
@@ -162,6 +184,8 @@ func (q *Queries) ListReviews(ctx context.Context, arg ListReviewsParams) ([]Lis
 		arg.Status,
 		arg.TenantID,
 		arg.ProductID,
+		arg.Rating,
+		arg.Search,
 		arg.Offset,
 		arg.Limit,
 	)
