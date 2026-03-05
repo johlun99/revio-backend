@@ -28,11 +28,18 @@ func NewRouter(pool *pgxpool.Pool) http.Handler {
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   strings.Split(cfg.CORSAllowedOrigins, ","),
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Request-ID"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Request-ID", "X-API-Key"},
 		ExposedHeaders:   []string{"X-Request-ID"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
+
+	// Embeddable widget script
+	r.Get("/widget.js", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+		w.Header().Set("Cache-Control", "public, max-age=3600")
+		w.Write(widgetJS)
+	})
 
 	healthHandler := handler.NewHealthHandler(pool)
 	r.Get("/health", healthHandler.Handle)
