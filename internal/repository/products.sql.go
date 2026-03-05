@@ -126,3 +126,35 @@ func (q *Queries) ListProducts(ctx context.Context, tenantID pgtype.UUID) ([]Lis
 	}
 	return items, nil
 }
+
+const updateProductName = `-- name: UpdateProductName :one
+UPDATE products SET name = $1, updated_at = now()
+WHERE id = $2
+RETURNING id, tenant_id, external_id, name, created_at
+`
+
+type UpdateProductNameParams struct {
+	Name string      `json:"name"`
+	ID   pgtype.UUID `json:"id"`
+}
+
+type UpdateProductNameRow struct {
+	ID         pgtype.UUID        `json:"id"`
+	TenantID   pgtype.UUID        `json:"tenant_id"`
+	ExternalID string             `json:"external_id"`
+	Name       string             `json:"name"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) UpdateProductName(ctx context.Context, arg UpdateProductNameParams) (UpdateProductNameRow, error) {
+	row := q.db.QueryRow(ctx, updateProductName, arg.Name, arg.ID)
+	var i UpdateProductNameRow
+	err := row.Scan(
+		&i.ID,
+		&i.TenantID,
+		&i.ExternalID,
+		&i.Name,
+		&i.CreatedAt,
+	)
+	return i, err
+}

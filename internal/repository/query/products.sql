@@ -16,5 +16,10 @@ INSERT INTO products (tenant_id, external_id, name)
 VALUES ($1, $2, $3)
 RETURNING id, tenant_id, external_id, name, created_at;
 
+-- name: UpdateProductName :one
+UPDATE products SET name = @name, updated_at = now()
+WHERE id = @id
+RETURNING id, tenant_id, external_id, name, created_at;
+
 -- name: DeleteProduct :exec
 DELETE FROM products WHERE id = $1;
